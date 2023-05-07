@@ -1,25 +1,21 @@
 // 网络请求
 import apiUrl from '../api/apiUrls';
 import { RequestBaseUrl } from '../config';
-import { getListOrLoadMore, navTypeList } from '../enum';
+import { getListOrLoadMore, navTypeList } from '../enum/index';
+import type { requestMethods, animationType } from '../type/index';
+import type {
+	optionsType,
+	headerType,
+	dictType,
+	fieldNameType,
+	listHttpOptionType,
+	navigateOptionType,
+	toastOptionType,
+} from '@/interface/index';
 
-type requestmethodType = 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT' | undefined;
-export function isLogin() {
+export function isLogin(): Object | boolean {
 	let isLogionFlag = JSON.parse(getStorageItem('isLogin')) || false;
 	return isLogionFlag;
-}
-
-interface optionsType {
-	url: string;
-	method: string;
-	data: string;
-	header: string;
-	LoadingVisible: string;
-}
-interface headerType {
-	'Content-Type': string;
-	'appName': string;
-	'Authorization': string;
 }
 
 interface responseType {
@@ -28,24 +24,10 @@ interface responseType {
 	data: any;
 }
 
-/**
- * @description 网络请求
- * @param { string } options.url  请求参数 请求地址
- * @param { string } options.method  请求参数 请求方法
- * @param { object } options.data  请求参数 请求体数据
- * @param { object } options.header  请求参数 自定义请求头
- * @param { boolean } options.LoadingVisible  是否显示loading
- * @param { function } callback  成功回调函数
- * @param { function } errCallback  需要单独处理的失败回调函数
- */
-export function httpRequest(options: optionsType, callback: Function, errCallback = null) {
-	let {
-		url,
-		method = 'GET' as UniNamespace.RequestOptions.method,
-		data = {},
-		header = {},
-		LoadingVisible = false,
-	} = options;
+export function httpRequest(options: optionsType, callback: Function, errCallback: Function | null = null) {
+	let { url = '' as string, data = {}, header = {}, LoadingVisible = false as boolean } = options;
+
+	let method: requestMethods = (options.method ?? 'GET') as requestMethods;
 
 	if (LoadingVisible) {
 		showLoading();
@@ -64,11 +46,8 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 		header: () => {
 			const header: Partial<headerType> = {};
 			header['Content-Type'] = 'application/json;charset=utf-8';
-			header['appName'] = 'business-human-resource';
-			header['Authorization'] =
-				'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1dWlkIjoiZWQxZGViNWE4MzE2NGJlMGEwMDU2NzgyY2M0NDdjODciLCJ1c2VyIjoiaHJhZG1pbiJ9.tn8rptnL8j1WrHMwMUO7dGUREEBaVO3cACVcQRiorWs';
 			if (isLogin()) {
-				// header['Authorization'] = getStorageItem('Authorization');
+				header['Authorization'] = getStorageItem('Authorization');
 			}
 			return header;
 		},
@@ -78,16 +57,16 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 	Object.assign(data, defaultOptions.data);
 	// 合并全局 data 数据
 	Object.assign(header, defaultOptions.header());
-	console.log(RequestBaseUrl + url);
+
 	new Promise((resolve, reject) => {
 		uni.request({
 			url: RequestBaseUrl + url,
 			method: method,
 			data: data,
 			header: header,
-			success: res => {
-				let data: responseType = res.data as responseType;
-				let code = res.data.code;
+			success: (res: RequestSuccessCallbackResult) => {
+				let data = res.data as unknown as responseType;
+				let code = data?.code as unknown as number;
 				if (LoadingVisible) {
 					hideLoading();
 				}
@@ -96,16 +75,16 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 						resolve(data.data);
 						break;
 					case resObj.code.userNotAuthorized:
-						showToast('用户未登录');
+						showToast({ title: '用户未登录' });
 						navTo('/pages/login');
 						reject(data['msg']);
 						break;
 					case resObj.code.notFound:
-						showToast('请求地址不正确');
+						showToast({ title: '请求地址不正确' });
 						reject(data['msg']);
 						break;
 					default:
-						showToast('未知错误');
+						showToast({ title: '未知错误' });
 						reject(data['msg']);
 						break;
 				}
@@ -114,7 +93,14 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 				if (LoadingVisible) {
 					hideLoading();
 				}
-				reject('httpRequest Failed', { url, method, data, header }, err);
+				reject({
+					msg: 'httpRequest Failed',
+					url,
+					method,
+					data,
+					header,
+					err,
+				});
 			},
 		});
 	})
@@ -124,11 +110,11 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 		.catch(err => {
 			console.log('httpRequest Error', { url, method, data, header }, err);
 			if (err?.code === resObj.code.userErr) {
-				let { __route__ } = getCurrentPages()[0];
+				let { __route__ } = getCurrentPages()[0] as any;
 				uni.clearStorageSync();
 				uni.reLaunch({
 					url: '/' + __route__,
-					fail(err) {
+					fail(err: Error) {
 						console.log('reLaunch Error', err);
 					},
 				});
@@ -139,14 +125,7 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 		});
 }
 
-/**
- * @description 通用文件上传
- * @param { object } options.data  请求参数 自定义请求体参数
- * @param { object } options.header  请求参数 自定义请求头
- * @param { boolean } options.LoadingVisible  是否显示loading
- * @param { function } callback  成功回调函数
- */
-export function fileUpload(options, callback) {
+export function fileUpload(options: optionsType, callback: Function) {
 	let { data = {}, header = {}, LoadingVisible = false } = options;
 	let defaultOptions = {
 		data: {},
@@ -172,7 +151,7 @@ export function fileUpload(options, callback) {
 			new Promise((resolve, reject) => {
 				uni.uploadFile({
 					url: RequestBaseUrl + apiUrl.FileUpload,
-					filePath: result.tempFilePaths[0],
+					filePath: result?.tempFilePaths[0] as string,
 					name: 'file',
 					header: header,
 					formData: {
@@ -182,7 +161,7 @@ export function fileUpload(options, callback) {
 						if (LoadingVisible) {
 							hideLoading();
 						}
-						let data = JSON.parse(res.data);
+						let data = JSON.parse(res.data as any);
 						if (data.code === 0) {
 							resolve(data);
 						} else {
@@ -204,7 +183,7 @@ export function fileUpload(options, callback) {
 					console.log('fileUpload Failed :', err);
 				});
 		},
-		fail: err => {
+		fail: (err: Error) => {
 			console.log('chooseImage Failed :', err);
 		},
 	});
@@ -213,8 +192,8 @@ export function fileUpload(options, callback) {
  *
  * @param { string } navType 页面路由切换方式
  */
-export function handleRedirect(urlPath, navType = navTypeList.navTo) {
-	let data = JSON.stringify({
+export function handleRedirect(urlPath: string, navType = navTypeList.navTo) {
+	let data: string = JSON.stringify({
 		type: navType,
 		to: urlPath,
 	});
@@ -226,9 +205,9 @@ export function handleRedirect(urlPath, navType = navTypeList.navTo) {
 			setTimeout(() => {
 				uni.navigateTo({
 					url: '/pages/login/index',
-					fail: err => {
+					fail: (err: Error) => {
 						console.log('handleRedirect Error', err, {
-							urlStr,
+							urlPath,
 						});
 					},
 				});
@@ -246,7 +225,7 @@ export function handleRedirect(urlPath, navType = navTypeList.navTo) {
  * @param { boolean } isNeedLogin 目标页面是否需要登录
  * @param { string } navType 目标页面导航类型
  */
-export function navTo(urlStr, isNeedLogin = false, navType = navTypeList.navTo) {
+export function navTo(urlStr: string, isNeedLogin = false, navType = navTypeList.navTo) {
 	let isLoginUrl = urlStr == '/pages/login/index';
 	if (isLoginUrl) {
 		let data = JSON.stringify({
@@ -256,7 +235,7 @@ export function navTo(urlStr, isNeedLogin = false, navType = navTypeList.navTo) 
 		setStorageItem('redirect', data);
 		uni.navigateTo({
 			url: urlStr,
-			fail: err => {
+			fail: (err: Error) => {
 				console.log('navigateTo Error', err, {
 					urlStr,
 				});
@@ -269,7 +248,7 @@ export function navTo(urlStr, isNeedLogin = false, navType = navTypeList.navTo) 
 	} else {
 		uni.navigateTo({
 			url: urlStr,
-			fail: err => {
+			fail: (err: Error) => {
 				console.log('navigateTo Error', err, {
 					urlStr,
 				});
@@ -284,13 +263,13 @@ export function navTo(urlStr, isNeedLogin = false, navType = navTypeList.navTo) 
  * @param { boolean } isNeedLogin 目标页面是否需要登录
  * @param { string } navType 目标页面导航类型
  */
-export function switchTab(urlStr, isNeedLogin = false, navType = navTypeList.switchTab) {
+export function switchTab(urlStr: string, isNeedLogin = false, navType = navTypeList.switchTab) {
 	if (isNeedLogin == true && isLogin() == false) {
 		handleRedirect(urlStr, navType);
 	} else {
 		uni.switchTab({
 			url: urlStr,
-			fail: err => {
+			fail: (err: Error) => {
 				console.log('switchTab Error', err, {
 					urlStr,
 				});
@@ -305,13 +284,13 @@ export function switchTab(urlStr, isNeedLogin = false, navType = navTypeList.swi
  * @param { boolean } isNeedLogin 目标页面是否需要登录
  * @param { string } navType 目标页面导航类型
  */
-export function redirectTo(urlStr, isNeedLogin = false, navType = navTypeList.redirectTo) {
+export function redirectTo(urlStr: string, isNeedLogin = false, navType = navTypeList.redirectTo) {
 	if (isNeedLogin == true && isLogin() == false) {
 		handleRedirect(urlStr, navType);
 	} else {
 		uni.redirectTo({
 			url: urlStr,
-			fail: err => {
+			fail: (err: Error) => {
 				console.log('redirectTo', err, {
 					urlStr,
 				});
@@ -320,20 +299,22 @@ export function redirectTo(urlStr, isNeedLogin = false, navType = navTypeList.re
 	}
 }
 // 返回某一级页面
-export function navBack(delta = 1, animationType = 'pop-in', duration = 300) {
+export function navBack(
+	{ animation = 'pop-in' as animationType, delta = 1, duration = 300 } = {} as navigateOptionType,
+) {
 	uni.navigateBack({
 		delta: delta,
-		animationType: animationType,
+		animationType: animation,
 		animationDuration: duration,
 	});
 }
 // 显示悬浮轻提示
-export function showToast(title = '', icon = 'none', duration = 2000, mask = 'false') {
+export function showToast({ title = '', icon = 'none', duration = 2000, mask = false } = {} as toastOptionType) {
 	uni.showToast({
 		title: title,
 		icon: icon,
 		duration: duration,
-		mask,
+		mask: mask,
 	});
 }
 // 显示 loading 动画
@@ -354,7 +335,7 @@ export function hideLoading() {
  * @param { function } resolveCallback 确认的回调
  * @param { function } rejectCallback 取消的回调
  */
-export function confirmModal(text, content, resolveCallback, rejectCallback) {
+export function confirmModal(text: string, content: string, resolveCallback: Function, rejectCallback: Function) {
 	uni.showModal({
 		title: `${text}`,
 		content: `${content}`,
@@ -372,7 +353,7 @@ export function confirmModal(text, content, resolveCallback, rejectCallback) {
  * @param { function } resolveCallback 确认的回调
  * @param { function } rejectCallback 取消的回调
  */
-export function startRefresh(Callback, delay = 500) {
+export function startRefresh(Callback: Function, delay = 500) {
 	Callback();
 	setTimeout(() => {
 		stopRefresh();
@@ -384,26 +365,21 @@ export function startRefresh(Callback, delay = 500) {
 function stopRefresh() {
 	uni.stopPullDownRefresh();
 }
-/**
- *
- * @param { string } url 请求路径
- * @param { object } _this 当前 vue 实例
- * @param { string } fieldName.listField 列字段
- * @param { string } fieldName.hasNextPage 是否有下一页字段
- * @param { string } fieldName.pageSize 页尺寸字段
- * @param { string } fieldName.pageNum 当前页字段
- * @param { number } pageSize 请求页尺寸
- * @param { number } pageNum 请求当前页
- * @param { function } callback 请求成功回调函数
- */
-export function reachBottom(
-	{ url, _this, fieldName = {}, data = {}, LoadingVisible = true, pageSize = 10, pageNum = 1 },
-	callback = null,
-) {
-	// 是否还有下一页
-	let { hasNextPage = 'hasNextPage' } = fieldName;
 
-	if (_this[hasNextPage]) {
+export function reachBottom(option: listHttpOptionType, callback: Function | null = null) {
+	let {
+		url = '',
+		_this = {} as any,
+		fieldName = {} as fieldNameType,
+		data = {},
+		LoadingVisible = true,
+		pageSize = 10,
+		pageNum = 1,
+	} = option as listHttpOptionType;
+	// 是否还有下一页
+	let { hasNextPageField = 'hasNextPage' } = fieldName;
+
+	if (_this[hasNextPageField] as boolean) {
 		// 到达底部当前页 +1
 		pageNum += 1;
 		// 然后发起新的请求
@@ -414,46 +390,31 @@ export function reachBottom(
 	}
 }
 
-/**
- *
- * @param { string } url 请求路径
- * @param { object } _this 当前 vue 实例
- * @param { string } fieldName.listField 列字段
- * @param { string } fieldName.hasNextPage 是否有下一页字段
- * @param { string } fieldName.pageSize 页尺寸字段
- * @param { string } fieldName.pageNum 当前页字段
- * @param { string } type 数据加载类型 加载更多 或 刷新数据
- * @param { string } data 额外的查询参数
- * @param { function } callback 请求成功回调函数
- * @param { number } pageSize 请求页尺寸
- * @param { number } pageNum 请求当前页
- * @returns
- */
-export function listHttpRequest(
-	{
-		url,
-		_this,
-		fieldName = {},
+export function listHttpRequest(option: listHttpOptionType, callback: Function | null = null) {
+	// 设置默认值，页面里面可以省去一些不必要的参数
+	let {
+		url = '',
+		_this = {} as any,
+		fieldName = {} as fieldNameType,
 		data = {},
-		type = getListOrLoadMore.getList,
 		LoadingVisible = true,
 		pageSize = 10,
 		pageNum = 1,
-	},
-	callback = null,
-) {
-	// 设置默认值，页面里面可以省去一些不必要的参数
+		type = getListOrLoadMore.getList,
+	} = option;
 
 	let {
 		hasNextPageField = 'hasNextPage',
 		ListField = 'List',
 		pageNumField = 'pageNum',
 		pageSizeField = 'pageSize',
-	} = fieldName;
+	} = fieldName as fieldNameType;
+
 	_this[pageSizeField] = pageSize;
 	_this[pageNumField] = pageNum;
 	_this[hasNextPageField] = true;
 	_this.$forceUpdate();
+
 	httpRequest(
 		{
 			url,
@@ -463,10 +424,10 @@ export function listHttpRequest(
 				// 接收额外的查询参数
 				...data,
 			},
-			LoadingVisible: LoadingVisible,
+			LoadingVisible: LoadingVisible as boolean,
 		},
-		function (res) {
-			let hasNextPage = res.length < pageSize ? false : true;
+		function (res: Array<any>) {
+			let hasNextPage: boolean = res.length < pageSize ? false : true;
 			if (type == getListOrLoadMore.loadMore) {
 				// 加载更多
 				_this[ListField] = [..._this[ListField], ...res];
@@ -474,7 +435,7 @@ export function listHttpRequest(
 				// 下拉刷新
 				_this[ListField] = [...res];
 			}
-			_this[hasNextPage] = hasNextPage;
+			_this[hasNextPageField] = hasNextPage;
 			_this.$forceUpdate();
 			if (callback) {
 				callback(hasNextPage, res);
@@ -487,7 +448,7 @@ export function listHttpRequest(
  * @param {*} titleId 待查字典类型 id
  * @param {*} Callback 请求成功数据的回调
  */
-export function getDictData(titleId, Callback) {
+export function getDictData(titleId: string, Callback: Function) {
 	httpRequest(
 		{
 			url: apiUrl.DataDict,
@@ -495,7 +456,7 @@ export function getDictData(titleId, Callback) {
 				tid: titleId,
 			},
 		},
-		function (res) {
+		function (res: responseType) {
 			Callback(res);
 		},
 	);
@@ -506,11 +467,11 @@ export function getDictData(titleId, Callback) {
  * @param { string } value 存储数据的 value
  * @returns
  */
-export function setStorageItem(key, value) {
+export function setStorageItem(key: string, value: object | Array<any> | string) {
 	uni.setStorage({
 		key: key,
 		data: value,
-		fail: error => {
+		fail: (error: Error) => {
 			console.log('setStorageSync Error :', error);
 		},
 	});
@@ -520,7 +481,7 @@ export function setStorageItem(key, value) {
  * @param { string } key 存储数据的 key
  * @returns
  */
-export function getStorageItem(key) {
+export function getStorageItem(key: string) {
 	let value = uni.getStorageSync(key);
 	return value ? value : false;
 }
@@ -529,67 +490,16 @@ export function getStorageItem(key) {
  * @param { string } key 存储数据的 key
  * @returns
  */
-export function removeStorageItem(key) {
+export function removeStorageItem(key: string) {
 	uni.removeStorage({
 		key: key,
-		fail: err => {
+		fail: (err: Error) => {
 			console.log('removeStorage Error', err);
 		},
 	});
 }
-/**
- *
- * @param {string | number} timestamp 需要转化的时间戳
- * @param { string } timestamp 需要转化的时间戳
- * @returns
- */
-export function dateFormater(time, pattern) {
-	let datetime = new Date(time).toJSON();
-	new Date(+new Date(datetime) + 8 * 3600 * 1000)
-		.toISOString()
-		.replace(/T/g, ' ')
-		.replace(/\.[\d]{3}Z/, '');
-	if (arguments.length === 0 || !time) {
-		return null;
-	}
-	const format = pattern || '{y}-{m}-{d} {h}:{i}:{s}';
-	let date;
-	if (typeof time === 'object') {
-		date = time;
-	} else {
-		if (typeof time === 'string' && /^[0-9]+$/.test(time)) {
-			time = parseInt(time);
-		} else if (typeof time === 'string') {
-			time = time.replace(new RegExp(/-/gm), '/');
-		}
-		if (typeof time === 'number' && time.toString().length === 10) {
-			time = time * 1000;
-		}
-		date = new Date(time);
-	}
-	const formatObj = {
-		y: date.getFullYear(),
-		m: date.getMonth() + 1,
-		d: date.getDate(),
-		h: date.getHours(),
-		i: date.getMinutes(),
-		s: date.getSeconds(),
-		a: date.getDay(),
-	};
-	const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
-		let value = formatObj[key];
-		// Note: getDay() returns 0 on Sunday
-		if (key === 'a') {
-			return ['日', '一', '二', '三', '四', '五', '六'][value];
-		}
-		if (result.length > 0 && value < 10) {
-			value = '0' + value;
-		}
-		return value || 0;
-	});
-	return time_str;
-}
-export function getDateTime(timestamp) {
+
+export function getDateTime(timestamp: number) {
 	let date = new Date(timestamp * 1000);
 	let dateStr =
 		date.getFullYear() +
@@ -611,8 +521,13 @@ export function getDateTime(timestamp) {
  * @param { string } collectionLabel 目标值的字段 默认 'label'
  * @returns
  */
-export function fieldTranslate(collection, value, collectionField = 'value', collectionLabel = 'label') {
-	if (collection && value && toString(value).length) {
+export function fieldTranslate(
+	collection: Array<dictType>,
+	value: number | string,
+	collectionField = 'value',
+	collectionLabel = 'label',
+) {
+	if (collection && value !== undefined && value !== null) {
 		if (Object.prototype.toString.call(collection) === '[object Array]') {
 			let checked = collection.find(ele => {
 				return ele[collectionField] == value;

@@ -5,7 +5,6 @@ import { ImageBaseUrl } from './config/index.js';
 import { hasNextPage, navTypeList, pageNum, pageSize } from './enum';
 import {
 	confirmModal,
-	dateFormater,
 	fieldTranslate,
 	getDateTime,
 	httpRequest,
@@ -31,7 +30,6 @@ export function createApp() {
 	app.config.globalProperties.navBack = navBack;
 	app.config.globalProperties.showToast = showToast;
 	app.config.globalProperties.confirmModal = confirmModal;
-	app.config.globalProperties.dateFormater = dateFormater;
 	app.config.globalProperties.fieldTranslate = fieldTranslate;
 	app.config.globalProperties.getDateTime = getDateTime;
 

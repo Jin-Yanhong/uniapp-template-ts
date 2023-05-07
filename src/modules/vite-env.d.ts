@@ -1,14 +1,9 @@
-export {};
+/// <reference types="vite/client" />
+/// <reference types="element-plus/dist/locale/zh-cn.mjs" />
 
-declare module 'vue' {
-	type Hooks = App.AppInstance & Page.PageInstance;
-
-	interface ComponentCustomOptions extends Hooks {
-		__route__?: string;
-		hasNextPageField?: string;
-		ListField?: string;
-		pageNumField?: string;
-		pageSizeField?: string;
+declare module '*.vue' {
+	interface ComponentCustomProperties {
+		// $getStorage: (key: string) => any;
 		GlobalImageBaseUrl?: string;
 		pageSize?: number;
 		pageNum?: number;
@@ -21,7 +16,11 @@ declare module 'vue' {
 		navBack?: () => void;
 		showToast?: () => void;
 		confirmModal?: () => void;
+		dateFormater?: () => string;
 		fieldTranslate?: () => string;
 		getDateTime?: () => string;
 	}
+
+	const component: DefineComponent<{}, {}, any>;
+	export default component;
 }

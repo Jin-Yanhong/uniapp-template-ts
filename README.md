@@ -29,7 +29,6 @@
     -   setStorageItem
     -   getStorageItem
     -   removeStorageItem
-    -   dateFormater
     -   fieldTranslate
 
 ## 功能说明

@@ -4,9 +4,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-
 import apiUrl from '../../api/apiUrls';
 import { httpRequest } from '../../utils';
+
 export default defineComponent({
 	data() {
 		return {
@@ -14,7 +14,7 @@ export default defineComponent({
 		};
 	},
 	created() {
-		this.getList();
+		// this.getList();
 	},
 	methods: {
 		getList() {
@@ -23,7 +23,7 @@ export default defineComponent({
 					url: apiUrl.List,
 					data: {},
 				},
-				function (res) {
+				function (res: any) {
 					console.log(res);
 				},
 			);
