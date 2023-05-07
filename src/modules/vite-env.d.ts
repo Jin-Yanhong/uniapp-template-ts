@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 /// <reference types="element-plus/dist/locale/zh-cn.mjs" />
 
+export {};
+
 declare module '*.vue' {
 	interface ComponentCustomProperties {
 		// $getStorage: (key: string) => any;

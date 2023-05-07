@@ -21,8 +21,8 @@ export interface listHttpOptionType {
 
 export interface headerType {
 	'Content-Type'?: string;
-	'appName'?: string;
-	'Authorization'?: string;
+	appName?: string;
+	Authorization?: string;
 }
 
 export interface dictType {

@@ -25,7 +25,7 @@ export default defineComponent({
 				},
 				function (res: any) {
 					console.log(res);
-				},
+				}
 			);
 		},
 	},

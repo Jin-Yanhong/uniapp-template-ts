@@ -1,11 +1,10 @@
 {
-	"name": "",
+	"name": "uniapp-template-ts",
 	"appid": "",
 	"description": "",
 	"versionName": "1.0.0",
 	"versionCode": "100",
 	"transformPx": false,
-
 	"app-plus": {
 		"usingComponents": true,
 		"nvueStyleCompiler": "uni-app",
@@ -16,9 +15,7 @@
 			"autoclose": true,
 			"delay": 0
 		},
-
 		"modules": {},
-
 		"distribute": {
 			"android": {
 				"permissions": [

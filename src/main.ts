@@ -1,22 +1,12 @@
 import { createSSRApp } from 'vue';
 import App from './App.vue';
 import { ImageBaseUrl } from './config/index.js';
-
 import { hasNextPage, navTypeList, pageNum, pageSize } from './enum';
-import {
-	confirmModal,
-	fieldTranslate,
-	getDateTime,
-	httpRequest,
-	navBack,
-	navTo,
-	redirectTo,
-	showToast,
-	switchTab,
-} from './utils/index.js';
+import { confirmModal, fieldTranslate, getDateTime, httpRequest, navBack, navTo, redirectTo, showToast, switchTab } from './utils/index.js';
 
 export function createApp() {
 	const app = createSSRApp(App);
+	// 常量
 	app.config.globalProperties.GlobalImageBaseUrl = ImageBaseUrl;
 	app.config.globalProperties.pageSize = pageSize;
 	app.config.globalProperties.pageNum = pageNum;

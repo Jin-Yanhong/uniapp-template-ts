@@ -3,15 +3,7 @@ import apiUrl from '../api/apiUrls';
 import { RequestBaseUrl } from '../config';
 import { getListOrLoadMore, navTypeList } from '../enum/index';
 import type { requestMethods, animationType } from '../type/index';
-import type {
-	optionsType,
-	headerType,
-	dictType,
-	fieldNameType,
-	listHttpOptionType,
-	navigateOptionType,
-	toastOptionType,
-} from '@/interface/index';
+import type { optionsType, headerType, dictType, fieldNameType, listHttpOptionType, navigateOptionType, toastOptionType } from '@/interface/index';
 
 export function isLogin(): Object | boolean {
 	let isLogionFlag = JSON.parse(getStorageItem('isLogin')) || false;
@@ -215,7 +207,7 @@ export function handleRedirect(urlPath: string, navType = navTypeList.navTo) {
 		},
 		function () {
 			// showToast('用戶取消了登錄！');
-		},
+		}
 	);
 }
 
@@ -299,9 +291,7 @@ export function redirectTo(urlStr: string, isNeedLogin = false, navType = navTyp
 	}
 }
 // 返回某一级页面
-export function navBack(
-	{ animation = 'pop-in' as animationType, delta = 1, duration = 300 } = {} as navigateOptionType,
-) {
+export function navBack({ animation = 'pop-in' as animationType, delta = 1, duration = 300 } = {} as navigateOptionType) {
 	uni.navigateBack({
 		delta: delta,
 		animationType: animation,
@@ -383,10 +373,7 @@ export function reachBottom(option: listHttpOptionType, callback: Function | nul
 		// 到达底部当前页 +1
 		pageNum += 1;
 		// 然后发起新的请求
-		listHttpRequest(
-			{ url, _this, fieldName, data, type: getListOrLoadMore.loadMore, LoadingVisible, pageSize, pageNum },
-			(callback = null),
-		);
+		listHttpRequest({ url, _this, fieldName, data, type: getListOrLoadMore.loadMore, LoadingVisible, pageSize, pageNum }, (callback = null));
 	}
 }
 
@@ -403,12 +390,7 @@ export function listHttpRequest(option: listHttpOptionType, callback: Function |
 		type = getListOrLoadMore.getList,
 	} = option;
 
-	let {
-		hasNextPageField = 'hasNextPage',
-		ListField = 'List',
-		pageNumField = 'pageNum',
-		pageSizeField = 'pageSize',
-	} = fieldName as fieldNameType;
+	let { hasNextPageField = 'hasNextPage', ListField = 'List', pageNumField = 'pageNum', pageSizeField = 'pageSize' } = fieldName as fieldNameType;
 
 	_this[pageSizeField] = pageSize;
 	_this[pageNumField] = pageNum;
@@ -440,7 +422,7 @@ export function listHttpRequest(option: listHttpOptionType, callback: Function |
 			if (callback) {
 				callback(hasNextPage, res);
 			}
-		},
+		}
 	);
 }
 /**
@@ -458,7 +440,7 @@ export function getDictData(titleId: string, Callback: Function) {
 		},
 		function (res: responseType) {
 			Callback(res);
-		},
+		}
 	);
 }
 /**
@@ -521,12 +503,7 @@ export function getDateTime(timestamp: number) {
  * @param { string } collectionLabel 目标值的字段 默认 'label'
  * @returns
  */
-export function fieldTranslate(
-	collection: Array<dictType>,
-	value: number | string,
-	collectionField = 'value',
-	collectionLabel = 'label',
-) {
+export function fieldTranslate(collection: Array<dictType>, value: number | string, collectionField = 'value', collectionLabel = 'label') {
 	if (collection && value !== undefined && value !== null) {
 		if (Object.prototype.toString.call(collection) === '[object Array]') {
 			let checked = collection.find(ele => {

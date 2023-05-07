@@ -5,13 +5,13 @@ export const hasNextPage = true;
 
 // 数据渲染类型 加载更多 | 刷新数据
 export enum getListOrLoadMore {
-	getList = 'getList',
-	loadMore = 'loadMore',
+	getList = "getList",
+	loadMore = "loadMore",
 }
 
 // 页面导航方式
 export enum navTypeList {
-	navTo = 'navTo',
-	switchTab = 'switchTab',
-	redirectTo = 'redirectTo',
+	navTo = "navTo",
+	switchTab = "switchTab",
+	redirectTo = "redirectTo",
 }
