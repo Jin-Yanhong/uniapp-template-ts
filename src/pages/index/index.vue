@@ -1,5 +1,7 @@
 <template>
-	<view class="pages index"> </view>
+	<view class="pages index">
+		<!--  -->
+	</view>
 </template>
 
 <script lang="ts">
@@ -14,7 +16,7 @@ export default defineComponent({
 		};
 	},
 	created() {
-		// this.getList();
+		this.getList();
 	},
 	methods: {
 		getList() {

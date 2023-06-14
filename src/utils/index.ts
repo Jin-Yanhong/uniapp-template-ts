@@ -5,8 +5,12 @@ import { getListOrLoadMore, navTypeList } from '../enum/index';
 import type { requestMethods, animationType } from '../type/index';
 import type { optionsType, headerType, dictType, fieldNameType, listHttpOptionType, navigateOptionType, toastOptionType } from '@/interface/index';
 
-export function isLogin(): Object | boolean {
-	let isLogionFlag = JSON.parse(getStorageItem('isLogin')) || false;
+/**
+ * @description 判断是否登录
+ * @returns
+ */
+export function isLogin(): boolean {
+	let isLogionFlag: boolean = JSON.parse(getStorageItem('isLogin') as string) || false;
 	return isLogionFlag;
 }
 
@@ -16,6 +20,12 @@ interface responseType {
 	data: any;
 }
 
+/**
+ * @description 网络请求
+ * @param { optionsType } options
+ * @param { Function } callback
+ * @param { Function } errCallback
+ */
 export function httpRequest(options: optionsType, callback: Function, errCallback: Function | null = null) {
 	let { url = '' as string, data = {}, header = {}, LoadingVisible = false as boolean } = options;
 
@@ -39,7 +49,7 @@ export function httpRequest(options: optionsType, callback: Function, errCallbac
 			const header: Partial<headerType> = {};
 			header['Content-Type'] = 'application/json;charset=utf-8';
 			if (isLogin()) {
-				header['Authorization'] = getStorageItem('Authorization');
+				header['Authorization'] = getStorageItem('Authorization') as string;
 			}
 			return header;
 		},
@@ -180,10 +190,7 @@ export function fileUpload(options: optionsType, callback: Function) {
 		},
 	});
 }
-/**
- *
- * @param { string } navType 页面路由切换方式
- */
+
 export function handleRedirect(urlPath: string, navType = navTypeList.navTo) {
 	let data: string = JSON.stringify({
 		type: navType,
@@ -217,7 +224,7 @@ export function handleRedirect(urlPath: string, navType = navTypeList.navTo) {
  * @param { boolean } isNeedLogin 目标页面是否需要登录
  * @param { string } navType 目标页面导航类型
  */
-export function navTo(urlStr: string, isNeedLogin = false, navType = navTypeList.navTo) {
+export function navTo(urlStr: string, isNeedLogin: boolean = false, navType: navTypeList = navTypeList.navTo) {
 	let isLoginUrl = urlStr == '/pages/login/index';
 	if (isLoginUrl) {
 		let data = JSON.stringify({
@@ -249,12 +256,6 @@ export function navTo(urlStr: string, isNeedLogin = false, navType = navTypeList
 	}
 }
 
-/**
- * @description tab页面切换
- * @param { string } urlStr 目标页面路径
- * @param { boolean } isNeedLogin 目标页面是否需要登录
- * @param { string } navType 目标页面导航类型
- */
 export function switchTab(urlStr: string, isNeedLogin = false, navType = navTypeList.switchTab) {
 	if (isNeedLogin == true && isLogin() == false) {
 		handleRedirect(urlStr, navType);
@@ -276,7 +277,7 @@ export function switchTab(urlStr: string, isNeedLogin = false, navType = navType
  * @param { boolean } isNeedLogin 目标页面是否需要登录
  * @param { string } navType 目标页面导航类型
  */
-export function redirectTo(urlStr: string, isNeedLogin = false, navType = navTypeList.redirectTo) {
+export function redirectTo(urlStr: string, isNeedLogin: boolean = false, navType: navTypeList = navTypeList.redirectTo) {
 	if (isNeedLogin == true && isLogin() == false) {
 		handleRedirect(urlStr, navType);
 	} else {
@@ -307,17 +308,26 @@ export function showToast({ title = '', icon = 'none', duration = 2000, mask = f
 		mask: mask,
 	});
 }
-// 显示 loading 动画
+
+/**
+ * @description 显示 loading 动画
+ * @param title
+ * @param mask
+ */
 export function showLoading(title = '加载中', mask = false) {
 	uni.showLoading({
 		title,
 		mask,
 	});
 }
-// 隐藏 loading 动画
+
+/**
+ * @description 隐藏 loading 动画
+ */
 export function hideLoading() {
 	uni.hideLoading();
 }
+
 /**
  * @description 弹出确认框
  * @param { string } text 提示标题
@@ -340,10 +350,10 @@ export function confirmModal(text: string, content: string, resolveCallback: Fun
 }
 /**
  * @description 下拉刷新
- * @param { function } resolveCallback 确认的回调
- * @param { function } rejectCallback 取消的回调
+ * @param { function } Callback 回调
+ * @param { function } delay  延迟时间
  */
-export function startRefresh(Callback: Function, delay = 500) {
+export function startRefresh(Callback: Function, delay: number = 500) {
 	Callback();
 	setTimeout(() => {
 		stopRefresh();
@@ -356,6 +366,11 @@ function stopRefresh() {
 	uni.stopPullDownRefresh();
 }
 
+/**
+ *
+ * @param { object } option listHttpOptionType
+ * @param { function } callback 成功回调
+ */
 export function reachBottom(option: listHttpOptionType, callback: Function | null = null) {
 	let {
 		url = '',
@@ -377,6 +392,11 @@ export function reachBottom(option: listHttpOptionType, callback: Function | nul
 	}
 }
 
+/**
+ *
+ * @param { object } option listHttpOptionType
+ * @param { function } callback 成功回调
+ */
 export function listHttpRequest(option: listHttpOptionType, callback: Function | null = null) {
 	// 设置默认值，页面里面可以省去一些不必要的参数
 	let {
@@ -458,15 +478,17 @@ export function setStorageItem(key: string, value: object | Array<any> | string)
 		},
 	});
 }
+
 /**
  *
  * @param { string } key 存储数据的 key
  * @returns
  */
-export function getStorageItem(key: string) {
+export function getStorageItem(key: string): Object | Array<any> | string {
 	let value = uni.getStorageSync(key);
 	return value ? value : false;
 }
+
 /**
  *
  * @param { string } key 存储数据的 key
@@ -481,7 +503,12 @@ export function removeStorageItem(key: string) {
 	});
 }
 
-export function getDateTime(timestamp: number) {
+/**
+ * @description 格式化时间显示
+ * @param timestamp 时间戳
+ * @returns
+ */
+export function getDateTime(timestamp: number): string {
 	let date = new Date(timestamp * 1000);
 	let dateStr =
 		date.getFullYear() +
@@ -495,6 +522,7 @@ export function getDateTime(timestamp: number) {
 		(date.getMinutes() > 10 ? date.getMinutes() : '0' + date.getMinutes());
 	return dateStr;
 }
+
 /**
  * @description 字段值解释翻译
  * @param { array } collection 对照数据
@@ -503,13 +531,13 @@ export function getDateTime(timestamp: number) {
  * @param { string } collectionLabel 目标值的字段 默认 'label'
  * @returns
  */
-export function fieldTranslate(collection: Array<dictType>, value: number | string, collectionField = 'value', collectionLabel = 'label') {
+export function fieldTranslate(collection: Array<dictType>, value: number | string, collectionField: string = 'value', collectionLabel: string = 'label') {
 	if (collection && value !== undefined && value !== null) {
 		if (Object.prototype.toString.call(collection) === '[object Array]') {
 			let checked = collection.find(ele => {
 				return ele[collectionField] == value;
 			});
-			let tips = (checked && checked[collectionLabel]) || '解释错误';
+			let tips = (checked && checked[collectionLabel]) || '';
 			return tips;
 		} else {
 			console.log('Field Translate Error：类型必须为 Array');
